@@ -1,0 +1,28 @@
+export const constants = {
+  USER: {
+    CREATED: 'User created successfully',
+    GET: 'User Fetched successfully',
+    DETAILS: 'User details fetched',
+    UPDATED: 'User Updated successfully',
+    DELETED: 'User Deleted successfullu',
+    NOT_FOUND: 'User not found',
+  },
+  CHAT: {
+    CREATED: 'Chat created successfully',
+    GET: 'Chat Fetched successfully',
+    DETAILS: 'Chat details fetched',
+    UPDATED: 'Chat Updated successfully',
+    DELETED: 'Chat Deleted successfullu',
+    NOT_FOUND: 'Chat not found',
+  },
+  CHAT_MEMBER: {
+    CREATED: 'Chat Member created successfully',
+    GET: 'Chat Member Fetched successfully',
+    DETAILS: 'Chat Member details fetched',
+    UPDATED: 'Chat Member Updated successfully',
+    DELETED: 'Chat Member Deleted successfullu',
+    NOT_FOUND: 'Chat Member not found',
+  },
+  AUTH: {},
+  COMMON: {},
+};
