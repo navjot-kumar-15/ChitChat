@@ -1,6 +1,7 @@
 {
   "name": "nestjs-practice",
   "version": "0.0.1",
+  "node_version": "v24.11.0",
   "description": "",
   "author": "",
   "private": true,
