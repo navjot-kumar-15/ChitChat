@@ -41,7 +41,7 @@ export class ChatGateway
     // Find which userId has this socketId
     for (const [userId, storedSocketId] of this.users.entries()) {
       if (storedSocketId === socketId) {
-        this.users.delete(userId); // ← delete by userId (key)
+        this.users.delete(userId);
         this.logger.log(
           `Disconnected & removed: userId=${userId}, socket=${socketId}`,
         );

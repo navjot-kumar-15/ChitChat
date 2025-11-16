@@ -1,14 +1,14 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 
-export interface IMessageInterface {
+export interface IMessageInterface extends Document {
   chat_id?: string;
   sender_id?: string;
   content?: string;
   message_type?: string;
   reply_to?: string;
   media?: string;
-  is_deleted?: string;
-  is_edited?: string;
+  is_deleted?: boolean;
+  is_edited?: boolean;
 }
 
 const message_schema = new mongoose.Schema<IMessageInterface>(
