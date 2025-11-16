@@ -25,6 +25,7 @@ export class ChatGateway
   server: Server;
 
   private logger = new Logger('ChatGateway');
+  private users = new Map<string, any>();
 
   afterInit() {
     this.logger.log('WebSocket Gateway Initialized');
@@ -34,23 +35,19 @@ export class ChatGateway
     this.logger.verbose(`Client connected: ${client.id}`);
   }
 
-  handleDisconnect(client: Socket) {
-    // Critical: Get rooms this client was in before they disconnect
-    // const rooms = Array.from(client.rooms).filter(room => room !== client.id);
+  async handleDisconnect(client: Socket) {
+    const socketId = client.id;
 
-    // // Notify others in each room that user left
-    // for (const roomId of rooms) {
-    //   const username = (client.data.user as any)?.username || 'Unknown';
-
-    //   this.server.to(roomId).emit('userLeft', {
-    //     username,
-    //     message: `${username} left the room`,
-    //   });
-
-    //   this.logger.log(`Client ${client.id} (${username}) left room: ${roomId}`);
-    // }
-
-    this.logger.log(`Client disconnected: ${client.id}`);
+    // Find which userId has this socketId
+    for (const [userId, storedSocketId] of this.users.entries()) {
+      if (storedSocketId === socketId) {
+        this.users.delete(userId); // ← delete by userId (key)
+        this.logger.log(
+          `Disconnected & removed: userId=${userId}, socket=${socketId}`,
+        );
+        break;
+      }
+    }
   }
 
   // ────────────────────────────── Events ──────────────────────────────
@@ -60,10 +57,7 @@ export class ChatGateway
     @ConnectedSocket() client: Socket,
     @Ack() ack: (res: any) => void,
   ) {
-    let all_users = await this.server.fetchSockets();
-    all_users.map((socket) => {
-      console.log('Socket: ', socket.data.user);
-    });
+    console.log(this.users);
   }
 
   @SubscribeMessage('join-room')
@@ -73,13 +67,9 @@ export class ChatGateway
     payload: { roomId: string; userId: string; username: string },
   ) {
     client.join(payload.roomId);
+    let userId = payload.userId;
 
-    // Store user info on socket for later use (e.g. disconnect)
-    client.data.user = {
-      userId: payload.userId,
-      username: payload.username,
-      socketId: client.id,
-    };
+    this.users.set(userId, client.id);
 
     // Notify everyone in room (including sender)
     this.server.to(payload.roomId).emit('userJoined', {

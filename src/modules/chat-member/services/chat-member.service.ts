@@ -4,7 +4,7 @@ import { constants } from '../../../common/constants/error.constant';
 import { IChatMemberInterface } from '../../../schemas/Chat-Member.schema';
 
 @Injectable()
-export class ServicesService {
+export class ChatMemberService {
   constructor() {}
   async chat_member_lists() {}
   async chat_member_details(
@@ -21,8 +21,9 @@ export class ServicesService {
     const is_chat_member = await ChatMember.find(condition);
     return is_chat_member;
   }
-  async chat_member_create(body: any) {
-    const is_chat_member = await this.chat_member_get_by_condition({});
+  async chat_member_create(body: any): Promise<IChatMemberInterface> {
+    let new_chat = await ChatMember.create(body);
+    return new_chat;
   }
   async chat_member_update(chat_member_id: string, body: any) {
     const is_chat_member = await this.chat_member_details(chat_member_id);
