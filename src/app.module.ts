@@ -10,6 +10,7 @@ import { HelpersModule } from './helpers/helpers.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { ChatMemberModule } from './modules/chat-member/chat-member.module';
 import { WebSocketModule } from './modules/web-socket/web-socket.module';
+import { MessageModule } from './modules/messages/message.module';
 
 @Module({
   imports: [
@@ -19,11 +20,12 @@ import { WebSocketModule } from './modules/web-socket/web-socket.module';
     }),
     DatabaseModule,
     HelpersModule,
+    WebSocketModule,
     AuthModule,
     UserModule,
     ChatModule,
     ChatMemberModule,
-    WebSocketModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,6 +1,17 @@
 import mongoose, { Types } from 'mongoose';
 
-const message_schema = new mongoose.Schema<any>(
+export interface IMessageInterface {
+  chat_id?: string;
+  sender_id?: string;
+  content?: string;
+  message_type?: string;
+  reply_to?: string;
+  media?: string;
+  is_deleted?: string;
+  is_edited?: string;
+}
+
+const message_schema = new mongoose.Schema<IMessageInterface>(
   {
     chat_id: {
       type: Types.ObjectId,
@@ -53,4 +64,4 @@ const message_schema = new mongoose.Schema<any>(
   },
 );
 
-export default mongoose.model<any>('Message', message_schema);
+export default mongoose.model<IMessageInterface>('Message', message_schema);

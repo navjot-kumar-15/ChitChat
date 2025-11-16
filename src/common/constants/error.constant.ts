@@ -23,6 +23,14 @@ export const constants = {
     DELETED: 'Chat Member Deleted successfullu',
     NOT_FOUND: 'Chat Member not found',
   },
+  MESSAGE: {
+    CREATED: 'Message created successfully',
+    GET: 'Message Fetched successfully',
+    DETAILS: 'Message details fetched',
+    UPDATED: 'Message Updated successfully',
+    DELETED: 'Message Deleted successfullu',
+    NOT_FOUND: 'Message not found',
+  },
   AUTH: {},
   COMMON: {},
 };
