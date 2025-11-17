@@ -90,7 +90,7 @@ export class ChatService {
     condition: any,
     select: string = '',
   ): Promise<IChatInterface[] | IChatInterface> {
-    const is_chat = await Chat.find(condition);
+    const is_chat = await Chat.find(condition).select(select);
     return is_chat;
   }
   async chat_create(body: any): Promise<IChatInterface> {
