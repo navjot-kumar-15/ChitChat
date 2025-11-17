@@ -1,4 +1,5 @@
 import mongoose, { Document, Types } from 'mongoose';
+import { IChatMemberInterface } from './Chat-Member.schema';
 
 export interface IChatInterface extends Document {
   chat_type?: string;
@@ -9,7 +10,8 @@ export interface IChatInterface extends Document {
   unread_count?: string;
   is_deleted?: boolean;
   chat_status?: string;
-  s;
+  participants?: [Types.ObjectId];
+  chat_members?: IChatMemberInterface[];
 }
 
 const chat_schema = new mongoose.Schema<IChatInterface>(
@@ -26,6 +28,11 @@ const chat_schema = new mongoose.Schema<IChatInterface>(
     avatar: {
       type: String,
       default: '',
+    },
+    participants: {
+      type: [Types.ObjectId],
+      ref: 'User',
+      default: [],
     },
     created_by: {
       type: Types.ObjectId,

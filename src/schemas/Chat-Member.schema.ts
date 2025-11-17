@@ -22,7 +22,7 @@ const chat_member_schema = new mongoose.Schema<IChatMemberInterface>(
     },
     role: {
       type: String,
-      enum: ['admin', 'userr'],
+      enum: ['admin', 'user'],
       default: 'user',
     },
     last_read_at: {

@@ -1,23 +1,34 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Chat } from '../../../schemas';
+import { Chat, ChatMember } from '../../../schemas';
 import { isContext } from 'vm';
 import { constants } from '../../../common/constants/error.constant';
 import { IChatInterface } from '../../../schemas/Chat.schema';
 import { MongooseHelper } from '../../../helpers/mongoose.helper';
+import { ChatMemberService } from '../../chat-member/services/chat-member.service';
 
 @Injectable()
 export class ChatService {
-  constructor(private mongooseHelper: MongooseHelper) {}
+  constructor(
+    private mongooseHelper: MongooseHelper,
+    private chatMemberService: ChatMemberService,
+  ) {}
 
   async chat_lists(
     query: any,
   ): Promise<{ data: IChatInterface[]; total: number; pages: number }> {
-    let { chat_id, page, limit, sort, created_by } = query;
+    let { chat_id, user_id, page, limit, sort, created_by } = query;
     let filters: Record<string, any> = {};
 
     if (chat_id) {
       filters._id = this.mongooseHelper.convert_to_object_id(chat_id);
     }
+
+    if (user_id) {
+      filters.participants = {
+        $in: [this.mongooseHelper.convert_to_object_id(user_id)],
+      };
+    }
+
     if (created_by) {
       filters.created_by = this.mongooseHelper.convert_to_object_id(created_by);
     }
@@ -61,18 +72,40 @@ export class ChatService {
     };
   }
   async chat_details(chat_id: any): Promise<IChatInterface> {
-    const is_chat = await Chat.findById(chat_id);
+    let is_chat = await Chat.findById(chat_id);
     if (!is_chat) throw new BadRequestException(constants.CHAT.NOT_FOUND);
+    if (is_chat.chat_type === 'group') {
+      const members = await this.chatMemberService.chat_member_get_by_condition(
+        { chat_id },
+        'chat_id user_id role',
+      );
+      (is_chat as any)._doc.chat_members = members || [];
+    } else {
+      (is_chat as any)._doc.chat_members = [];
+    }
     return is_chat;
   }
+
   async chat_get_by_condition(
     condition: any,
+    select: string = '',
   ): Promise<IChatInterface[] | IChatInterface> {
     const is_chat = await Chat.find(condition);
     return is_chat;
   }
   async chat_create(body: any): Promise<IChatInterface> {
+    const { chat_type, participants } = body;
     const is_chat = await Chat.create(body);
+    if (chat_type === 'group') {
+      const members = participants.map((user) => ({
+        chat_id: is_chat._id,
+        user_id: user,
+        role:
+          is_chat.created_by?.toString() === user.toString() ? 'admin' : 'user',
+      }));
+
+      await this.chatMemberService.chat_member_create(members);
+    }
     return is_chat;
   }
   async chat_udpate(

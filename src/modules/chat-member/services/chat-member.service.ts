@@ -17,8 +17,9 @@ export class ChatMemberService {
   }
   async chat_member_get_by_condition(
     condition: any,
+    select: string = '',
   ): Promise<IChatMemberInterface[]> {
-    const is_chat_member = await ChatMember.find(condition);
+    const is_chat_member = await ChatMember.find(condition).select(select);
     return is_chat_member;
   }
   async chat_member_create(body: any): Promise<IChatMemberInterface> {
