@@ -11,6 +11,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { ChatMemberModule } from './modules/chat-member/chat-member.module';
 import { WebSocketModule } from './modules/web-socket/web-socket.module';
 import { MessageModule } from './modules/messages/message.module';
+import { MediaModule } from './modules/media/media.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { MessageModule } from './modules/messages/message.module';
     ChatModule,
     ChatMemberModule,
     MessageModule,
+    MediaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
