@@ -70,8 +70,9 @@ export class UserService {
 
   async get_user_by_condition(
     condition: any,
+    select: string = '',
   ): Promise<IUserInterface[] | Boolean> {
-    let is_user = await User.find(condition);
+    let is_user = await User.find(condition).select(select);
     if (!is_user) return false;
     return is_user;
   }

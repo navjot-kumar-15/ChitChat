@@ -14,6 +14,8 @@ import { Logger } from '@nestjs/common';
 import { Message, User } from '../../schemas';
 import { MessageService } from '../messages/services/message.service';
 import { UserService } from '../user/services/user.service';
+import { MongooseHelper } from '../../helpers/mongoose.helper';
+import { Types } from 'mongoose';
 
 @WebSocketGateway({
   cors: {
@@ -34,6 +36,7 @@ export class ChatGateway
   constructor(
     private readonly messageService: MessageService,
     private userService: UserService,
+    private mongooseHelper: MongooseHelper,
   ) {}
 
   afterInit() {
@@ -61,6 +64,42 @@ export class ChatGateway
   }
 
   // ────────────────────────────── Events ──────────────────────────────
+
+  @SubscribeMessage('online-users')
+  async handleOnlineUsers(
+    @ConnectedSocket() client: Socket,
+    @Ack()
+    ack: (response: {
+      success: boolean;
+      statusCode: number;
+      message: string;
+      online_users?: any;
+    }) => void,
+  ) {
+    try {
+      // const [keys, values] = this.users.entries();
+      // const ids = keys.map((v) => {
+      //   if (this.users.get(v) !== client.id) {
+      //     return this.mongooseHelper.convert_to_object_id(v);
+      //   }
+      // });
+      // const user_details = await this.userService.get_user_by_condition({
+      //   _id: { $in: ids },
+      // });
+      // ack({
+      //   success: true,
+      //   statusCode: 200,
+      //   message: 'online users fetched',
+      //   online_users: user_details,
+      // });
+    } catch (error) {
+      ack({
+        success: false,
+        statusCode: 400,
+        message: error.message,
+      });
+    }
+  }
 
   @SubscribeMessage('join-room')
   handleJoinRoom(
@@ -116,8 +155,24 @@ export class ChatGateway
     this.server.to(payload.chat_id).emit('send-message', payload);
   }
 
-  @SubscribeMessage('typing')
+  @SubscribeMessage('start-typing')
   async handleTyping(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    payload: { chat_id: string; user_id: string },
+  ) {
+    const { user_id } = payload;
+    const is_user =
+      await this.userService.get_user_by_id_or_throw_error(user_id);
+    // Broadcast to room except sender
+    client.to(payload.chat_id).except(client.id).emit('typing', {
+      username: is_user.username,
+      is_typing: true,
+    });
+  }
+
+  @SubscribeMessage('stop-typing')
+  async handleStopTyping(
     @ConnectedSocket() client: Socket,
     @MessageBody()
     payload: { chat_id: string; user_id: string; is_typing: boolean },
@@ -126,9 +181,9 @@ export class ChatGateway
     const is_user =
       await this.userService.get_user_by_id_or_throw_error(user_id);
     // Broadcast to room except sender
-    client.to(payload.chat_id).except(client.id).emit('typing', {
+    client.to(payload.chat_id).except(client.id).emit('stop-typing', {
       username: is_user.username,
-      is_typing: payload.is_typing,
+      is_typing: false,
     });
   }
 }
