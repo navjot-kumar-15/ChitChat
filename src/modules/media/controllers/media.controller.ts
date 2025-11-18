@@ -15,7 +15,11 @@ export class MediaController {
   @UseInterceptors(FileInterceptor('image'))
   upload_single_file(@UploadedFile() file: Express.Multer.File) {
     try {
-      console.log(file);
+      return {
+        success: true,
+        statusCode: 200,
+        file,
+      };
     } catch (error) {
       return {
         success: false,
@@ -29,7 +33,11 @@ export class MediaController {
   @UseInterceptors(FilesInterceptor('images'))
   upload_multiple_files(@UploadedFiles() files: Array<Express.Multer.File>) {
     try {
-      console.log(files);
+      return {
+        success: true,
+        statusCode: 200,
+        files,
+      };
     } catch (error) {
       return {
         success: false,
