@@ -11,12 +11,16 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { Message, User } from '../../schemas';
+import { MessageService } from '../messages/services/message.service';
+import { UserService } from '../user/services/user.service';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
     credentials: true,
   },
+  namespace: 'chat',
 })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -26,6 +30,11 @@ export class ChatGateway
 
   private logger = new Logger('ChatGateway');
   private users = new Map<string, any>();
+
+  constructor(
+    private readonly messageService: MessageService,
+    private userService: UserService,
+  ) {}
 
   afterInit() {
     this.logger.log('WebSocket Gateway Initialized');
@@ -37,6 +46,7 @@ export class ChatGateway
 
   async handleDisconnect(client: Socket) {
     const socketId = client.id;
+    console.log('users: ', this.users);
 
     // Find which userId has this socketId
     for (const [userId, storedSocketId] of this.users.entries()) {
@@ -52,84 +62,73 @@ export class ChatGateway
 
   // ────────────────────────────── Events ──────────────────────────────
 
-  @SubscribeMessage('users')
-  async handleAllUsers(
-    @ConnectedSocket() client: Socket,
-    @Ack() ack: (res: any) => void,
-  ) {
-    console.log(this.users);
-  }
-
   @SubscribeMessage('join-room')
   handleJoinRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    payload: { roomId: string; userId: string; username: string },
+    payload: { chat_id: string; user_id: string },
   ) {
-    client.join(payload.roomId);
-    let userId = payload.userId;
+    client.join(payload.chat_id);
+    let userId = payload.user_id;
 
     this.users.set(userId, client.id);
 
     // Notify everyone in room (including sender)
-    this.server.to(payload.roomId).emit('userJoined', {
-      userId: payload.userId,
-      username: payload.username,
-      message: `${payload.username} joined the room`,
-    });
+    this.server
+      .to(payload.chat_id)
+      .except(client.id)
+      .emit('join-room', {
+        user_id: payload.user_id,
+        message: `${payload.user_id} joined the room`,
+      });
 
-    this.logger.log(`${payload.username} joined room: ${payload.roomId}`);
+    this.logger.log(`${payload.user_id} joined room: ${payload.chat_id}`);
   }
 
-  @SubscribeMessage('leaveRoom')
+  @SubscribeMessage('leave-room')
   handleLeaveRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { roomId: string },
+    @MessageBody() payload: { chat_id: string; user_id: string },
   ) {
-    client.leave(payload.roomId);
+    const { user_id } = payload;
+    client.leave(payload.chat_id);
 
-    const username = (client.data.user as any)?.username || 'Unknown';
-
-    this.server.to(payload.roomId).emit('userLeft', {
-      username,
-      message: `${username} left the room`,
+    this.server.to(payload.chat_id).emit('userLeft', {
+      user_id,
+      message: `${user_id} left the room`,
     });
 
-    this.logger.log(`${username} manually left room: ${payload.roomId}`);
+    this.logger.log(`${user_id} manually left room: ${payload.chat_id}`);
   }
 
-  @SubscribeMessage('sendMessage')
-  handleMessage(
+  @SubscribeMessage('send-message')
+  async handleMessage(
     @MessageBody()
     payload: {
-      roomId: string;
-      message: string;
-      userId: string;
-      username: string;
+      chat_id: string;
+      content: string;
+      sender_id: string;
     },
   ) {
-    const newMessage = {
-      id: Date.now().toString() + Math.random(), // better: use UUID in prod
-      text: payload.message,
-      userId: payload.userId,
-      username: payload.username,
-      timestamp: new Date(),
-    };
+    const new_message = await Message.create(payload);
 
     // This sends to ALL in room including sender (correct behavior)
-    this.server.to(payload.roomId).emit('newMessage', newMessage);
+    this.server.to(payload.chat_id).emit('send-message', payload);
   }
 
   @SubscribeMessage('typing')
-  handleTyping(
+  async handleTyping(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    payload: { roomId: string; username: string; isTyping: boolean },
+    payload: { chat_id: string; user_id: string; is_typing: boolean },
   ) {
+    const { user_id } = payload;
+    const is_user =
+      await this.userService.get_user_by_id_or_throw_error(user_id);
     // Broadcast to room except sender
-    client.to(payload.roomId).emit('userTyping', {
-      username: payload.username,
-      isTyping: payload.isTyping,
+    client.to(payload.chat_id).except(client.id).emit('typing', {
+      username: is_user.username,
+      is_typing: payload.is_typing,
     });
   }
 }
