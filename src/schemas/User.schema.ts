@@ -19,6 +19,7 @@ export interface IUserInterface extends Document {
   is_email_verified?: boolean;
   is_blocked_by_admin?: boolean;
   is_deleted?: boolean;
+  token?: string;
 }
 
 const user_schema = new mongoose.Schema<IUserInterface>(
@@ -84,6 +85,10 @@ const user_schema = new mongoose.Schema<IUserInterface>(
     is_deleted: {
       type: Boolean,
       default: false,
+    },
+    token: {
+      type: String,
+      default: '',
     },
   },
   { timestamps: true },

@@ -6,6 +6,7 @@ export const constants = {
     UPDATED: 'User Updated successfully',
     DELETED: 'User Deleted successfullu',
     NOT_FOUND: 'User not found',
+    ALREADY_EXIST: 'User already exits',
   },
   CHAT: {
     CREATED: 'Chat created successfully',
@@ -31,6 +32,9 @@ export const constants = {
     DELETED: 'Message Deleted successfullu',
     NOT_FOUND: 'Message not found',
   },
-  AUTH: {},
+  AUTH: {
+    REGISTER: 'User registered successfully',
+    LOGGED_IN: 'User logged in successfully',
+  },
   COMMON: {},
 };

@@ -71,9 +71,8 @@ export class UserService {
   async get_user_by_condition(
     condition: any,
     select: string = '',
-  ): Promise<IUserInterface[] | Boolean> {
-    let is_user = await User.find(condition).select(select);
-    if (!is_user) return false;
+  ): Promise<IUserInterface | null> {
+    let is_user = await User.findOne(condition).select(select);
     return is_user;
   }
 
@@ -86,7 +85,7 @@ export class UserService {
   async create_user(body: any) {
     const { email, username } = body;
     const is_user = await this.get_user_by_condition({ email });
-    if (!is_user) throw new BadRequestException('User already exists');
+    if (is_user) throw new BadRequestException('User already exists');
     let new_user = await User.create(body);
     return new_user;
   }
