@@ -33,7 +33,8 @@ export class AuthService {
       !(await this.bcryptService.compare_pass(password, is_user?.password))
     )
       throw new BadRequestException(constants.COMMON.PASSWORD_INCORRECT);
-
+    let token = await this.jwtService.generate_token({ id: is_user._id });
+    is_user.token = token;
     return is_user;
   }
 }

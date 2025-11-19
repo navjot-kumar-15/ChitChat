@@ -7,11 +7,14 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { constants } from '../../../common/constants/error.constant';
+import { AuthGuard } from '../../../common/guards/auth.guard';
 
 @Controller('users')
+@UseGuards(AuthGuard)
 export class UserController {
   constructor(private userService: UserService) {}
 
