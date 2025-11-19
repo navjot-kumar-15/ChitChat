@@ -36,5 +36,7 @@ export const constants = {
     REGISTER: 'User registered successfully',
     LOGGED_IN: 'User logged in successfully',
   },
-  COMMON: {},
+  COMMON: {
+    PASSWORD_INCORRECT: 'Invalid credentials',
+  },
 };

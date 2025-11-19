@@ -24,5 +24,16 @@ export class AuthService {
     new_user.token = token;
     return new_user;
   }
-  async login_user(body: any) {}
+  async login_user(body: any) {
+    const { email, password } = body;
+    const is_user = await this.userService.get_user_by_condition({ email });
+    if (!is_user) throw new BadRequestException(constants.USER.NOT_FOUND);
+    if (
+      is_user.password &&
+      !(await this.bcryptService.compare_pass(password, is_user?.password))
+    )
+      throw new BadRequestException(constants.COMMON.PASSWORD_INCORRECT);
+
+    return is_user;
+  }
 }
