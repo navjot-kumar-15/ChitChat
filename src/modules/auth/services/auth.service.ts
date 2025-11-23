@@ -35,6 +35,7 @@ export class AuthService {
       throw new BadRequestException(constants.COMMON.PASSWORD_INCORRECT);
     let token = await this.jwtService.generate_token({ id: is_user._id });
     is_user.token = token;
+    await is_user.save();
     return is_user;
   }
 }
